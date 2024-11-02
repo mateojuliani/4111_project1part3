@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Current Food Items</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>food_id</th>
+                <th>name</th>
+                <th>grams</th>
+                <th>calories</th>
+                <th>carbs</th>
+                <th>fats</th>
+                <th>protein</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for food_items in meal %}
+                <tr>
+                    <td>{{ food_items.food_id }}</td>
+                    <td>{{ food_items.name }}</td>
+                    <td>{{ food_items.grams }}</td>
+                    <td>{{ food_items.calories }}</td>
+                    <td>{{ food_items.carbs }}</td>
+                    <td>{{ food_items.fats }}</td>
+                    <td>{{ food_items.protein }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h1>Add Food Items</h1>
+    <table id="inputTable">
+        <thead>
+            <tr>
+                <th>Food Name</th>
+                <th>Grams</th>
+                <th>Calories</th>
+                <th>Carbs (g)</th>
+                <th>Fats (g)</th>
+                <th>Protein (g)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" name="name" required></td>
+                <td><input type="number" name="grams" required></td>
+                <td><input type="number" name="calories" required></td>
+                <td><input type="number" name="carbs" required></td>
+                <td><input type="number" name="fats" required></td>
+                <td><input type="number" name="protein" required></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button id="addRowButton">Add Another Item</button>
+
+</body>
+</html>

@@ -21,6 +21,8 @@ from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, session, url_for
 import pandas as pd
 import plotly.express as px
+import datetime
+
 
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -95,6 +97,13 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
+def check_user_is_logged_in():
+  user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
+
+  if not user_email:
+    return redirect(url_for('login'))
+  
+  else: return user_email
 
 #
 # @app.route is a decorator around index() that means:
@@ -125,21 +134,36 @@ def index():
   print(request.args)
   return render_template("login.html")
 
+#login in code
+@app.route('/login', methods=['POST'])
+def login():
+    
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  print(name)
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
+    email = request.form['email']
+    
+    cursor = g.conn.execute("SELECT * FROM msj2164.User_table WHERE email = %s", (email,))
+    user = cursor.fetchone()
+    
+    if user:
+        session['user_email'] = email  # Store the email in session
+        cursor.close()
+        return redirect(url_for('daily_summary'))
+    else:
+        # g.conn.execute("INSERT INTO users (email) VALUES (:email)", {'email': email})
+        # session['user_email'] = email  # Store new user email in session
+        cursor.close()
+        return render_template('bad_login.html')
 
+#Log out
+@app.route('/logout')
+def logout():
+    session.pop('user_email', None)  
+    return render_template("login.html")
 
 @app.route('/daily_summary')
 def daily_summary():
-    # Access the user email from the session
-    user_email = session.get('user_email')
+    # Get current user email
+    user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
 
     if not user_email:
       return redirect(url_for('login'))
@@ -185,30 +209,119 @@ def daily_summary():
     
 
 
-#login in code
-@app.route('/login', methods=['POST'])
-def login():
+@app.route('/add', methods=['POST'])
+def add():
+  name = request.form['name']
+  print(name)
+  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
+  g.conn.execute(text(cmd), name1 = name, name2 = name);
+  return redirect('/')
+
+# Adding a new meal
+@app.route('/add_meal')
+def add_meal():
+   
+  user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
+
+  if not user_email:
+    return redirect(url_for('login'))
+
+  #Get all the user meal events 
+  cursor = g.conn.execute("""
+                            WITH user_logged_in as (
+                            SELECT * FROM msj2164.User_table 
+                            WHERE email = %s
+                            )
+                          
+                            SELECT concat(meal_id, ' | ', start_time, ' | ', type) as name
+                            FROM user_logged_in u
+                            JOIN msj2164.Calendar c ON c.email = u.email
+                            JOIN msj2164.meal_event ms ON c.calendar_id = ms.calendar_id
+                            order by start_time desc 
+                            """, (user_email,))
+    
+  results = cursor.fetchall()
+
+  return render_template('meal_addition.html', items=results)
+
+#create a new meal 
+@app.route('/create_new_meal', methods=['POST'])
+def create_new_meal():
+
+  """
+  This is used to create a new entry in the meal_event table
+  """
+
+  user_email = check_user_is_logged_in() #tbd if this works 
+
+  cal_id = g.conn.execute("""
+                            WITH user_logged_in as (
+                            SELECT * FROM msj2164.User_table 
+                            WHERE email = %s
+                            )
+                          
+                            SELECT calendar_id
+                            FROM user_logged_in u
+                            JOIN msj2164.Calendar c ON c.email = u.email
+                            """, (user_email,))
+  
+  cal_id_val = cal_id.fetchone()[0]
+
+  year = int(request.form['year'])
+  month = int(request.form['month'])
+  day = int(request.form['day'])
+  hour = int(request.form['hour'])
+  minute = int(request.form['minute'])
+  meal_type = request.form['meal-type']
+
+  date_time_string = datetime.datetime(year, month, day, hour, minute).strftime("%Y-%m-%d %H:%M:%S") 
+  
+  #TODO: Check if the value already exists in the db 
+
+  cmd = 'INSERT INTO meal_event(calendar_id, start_time, type) VALUES (:calendar_id, :start_time, :meal_type)';
+  g.conn.execute(text(cmd), calendar_id = cal_id_val, start_time = date_time_string, meal_type = meal_type);
+
+  cal_id.close()  # Close the session
+  return redirect('/add_meal')
+
+#edit a current meal
+@app.route('/edit_current_meal', methods=['POST'])
+def edit_current_meal():
+
+  user_email = check_user_is_logged_in()
+  meal_selected = request.form['selected_meal']
+  meal_id = meal_selected.split("|")[0]
+
+  cursor = g.conn.execute("""
+                            WITH meal_id as (
+                            SELECT * FROM msj2164.meal_event 
+                            WHERE meal_id = %s
+                            )
+
+                            
+                            SELECT * 
+                            FROM meal_id as m
+                            JOIN msj2164.Food f ON m.meal_id = f.meal_id
+                            """, (meal_id,))
+    
+  results = cursor.fetchall()
     
 
-    email = request.form['email']
-    
-    cursor = g.conn.execute("SELECT * FROM msj2164.User_table WHERE email = %s", (email,))
-    user = cursor.fetchone()
-    
-    if user:
-        session['user_email'] = email  # Store the email in session
-        cursor.close()
-        return redirect(url_for('daily_summary'))
-    else:
-        # g.conn.execute("INSERT INTO users (email) VALUES (:email)", {'email': email})
-        # session['user_email'] = email  # Store new user email in session
-        cursor.close()
-        return render_template('bad_login.html')
+  meal = [
+        {
+            'food_id':row['food_id'],
+            'name': row['name'],
+            'grams': row['grams'],
+            'calories': row['calories'],
+            'carbs': row['carbs'],
+            'fats': row['fats'],
+            'protein': row['protein'],
+        }
+        for row in results
+  ]
 
-@app.route('/logout')
-def logout():
-    session.pop('user_email', None)  
-    return render_template("login.html")
+  return render_template('add_food_item.html', meal = meal)
+
 
 
 if __name__ == "__main__":
