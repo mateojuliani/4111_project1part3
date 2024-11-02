@@ -37,30 +37,32 @@
     </table>
     
     <h1>Add Food Items</h1>
-    <table id="inputTable">
-        <thead>
-            <tr>
-                <th>Food Name</th>
-                <th>Grams</th>
-                <th>Calories</th>
-                <th>Carbs (g)</th>
-                <th>Fats (g)</th>
-                <th>Protein (g)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><input type="text" name="name" required></td>
-                <td><input type="number" name="grams" required></td>
-                <td><input type="number" name="calories" required></td>
-                <td><input type="number" name="carbs" required></td>
-                <td><input type="number" name="fats" required></td>
-                <td><input type="number" name="protein" required></td>
-            </tr>
-        </tbody>
-    </table>
-
-    <button id="addRowButton">Add Another Item</button>
+    <form action="/add_new_food_item" method="post">
+        <table id="inputTable">
+            <thead>
+                <tr>
+                    <th>Food Name</th>
+                    <th>Grams</th>
+                    <th>Calories</th>
+                    <th>Carbs (g)</th>
+                    <th>Fats (g)</th>
+                    <th>Protein (g)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" name="food_name" required></td>
+                    <td><input type="number" name="grams" required></td>
+                    <td><input type="number" name="calories" required></td>
+                    <td><input type="number" name="carbs" required></td>
+                    <td><input type="number" name="fats" required></td>
+                    <td><input type="number" name="protein" required></td>
+                </tr>
+            </tbody>
+        </table>
+    
+        <button type="add_new_food_item">Add Another Food Item</button>
+    </form>
 
 </body>
 </html>

@@ -285,12 +285,22 @@ def create_new_meal():
   return redirect('/add_meal')
 
 #edit a current meal
-@app.route('/edit_current_meal', methods=['POST'])
+@app.route('/edit_current_meal', methods=['POST', 'GET'])
 def edit_current_meal():
 
   user_email = check_user_is_logged_in()
-  meal_selected = request.form['selected_meal']
-  meal_id = meal_selected.split("|")[0]
+
+  if 'selected_meal' in request.form:
+    meal_selected = request.form['selected_meal']
+    meal_id = meal_selected.split("|")[0]
+    session['meal_id'] = meal_id
+
+  elif 'meal_id' in session:
+    meal_id = session['meal_id']
+  
+  else:
+    return redirect('/')
+
 
   cursor = g.conn.execute("""
                             WITH meal_id as (
@@ -321,6 +331,42 @@ def edit_current_meal():
   ]
 
   return render_template('add_food_item.html', meal = meal)
+
+@app.route('/add_new_food_item', methods=['POST'])
+def add_new_food_item():
+
+  user_email = check_user_is_logged_in()
+  meal_id = session.get('meal_id')
+
+  food_name = (request.form['food_name'])
+  grams = (request.form['grams'])
+  calories = (request.form['calories'])
+  carbs = (request.form['carbs'])
+  fats = (request.form['fats'])
+  protein = request.form['protein']
+
+  print(meal_id)
+  print(food_name)
+  print(grams)
+  print(calories)
+  print(carbs)
+  print(fats)
+  print(protein)
+
+  cmd = 'INSERT INTO Food (meal_id, name, grams, calories, carbs, fats, protein) VALUES (:meal_id, :name, :grams, :calories, :carbs, :fats, :protein)';
+  g.conn.execute(text(cmd), 
+                 meal_id = meal_id, 
+                 name = food_name, 
+                 grams = grams, 
+                 calories = calories, 
+                 carbs = carbs, 
+                 fats = fats, 
+                 protein = protein);
+
+  return redirect('/edit_current_meal')
+
+
+
 
 
 
