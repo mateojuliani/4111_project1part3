@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Summary</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .button-container {
+            text-align: right; /* Align buttons to the right */
+            margin-bottom: 1px; /* Space below the buttons */
+        }
+        .button {
+            background-color: #4CAF50; /* Green background */
+            border: none;
+            color: white; /* White text */
+            padding: 10px 15px; /* Padding */
+            text-align: center;
+            text-decoration: none; /* No underline */
+            display: inline-block; /* Inline button */
+            font-size: 16px; /* Font size */
+            margin-left: 10px; /* Space between buttons */
+            cursor: pointer; /* Pointer cursor on hover */
+            border-radius: 5px; /* Rounded corners */
+        }
+        .button.logout {
+            background-color: #f44336; /* Red background for logout */
+        }
+    </style>
+</head>
+<body>
+    <h1>Daily Summary</h1>
+
+    <div class="button-container">
+        <a href="/logout" class="button logout">Logout</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Summary ID</th>
+                <th>Calendar ID</th>
+                <th>Day</th>
+                <th>Rating</th>
+                <th>Weight</th>
+                <th>Sleep Quality</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for summary in summaries %}
+                <tr>
+                    <td>{{ summary.summary_id }}</td>
+                    <td>{{ summary.calendar_id }}</td>
+                    <td>{{ summary.day }}</td>
+                    <td>{{ summary.rating }}</td>
+                    <td>{{ summary.weight }}</td>
+                    <td>{{ summary.sleep_quality }}</td>
+                    <td>{{ summary.notes }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Daily Ratings Over Time</h2>
+    <div>
+        {{ graph_html|safe }} 
+    </div>
+</body>
+</html>
