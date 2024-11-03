@@ -355,7 +355,7 @@ def edit_current_meal():
         for row in results
   ]
 
-  return render_template('add_food_item.html', meal = meal)
+  return render_template('/add_food_item.html', meal = meal)
 
 @app.route('/add_new_food_item', methods=['POST'])
 def add_new_food_item():
@@ -396,6 +396,39 @@ def return_add_meal():
 @app.route('/return_dashboard')
 def return_dashboard():
   return redirect('/daily_summary')
+
+#end of meal, start of workout
+
+# Adding a new meal
+@app.route('/add_workout')
+def add_workout():
+  """
+  Takes user to the add work page adn renders the page 
+  """
+   
+  user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
+
+  if not user_email:
+    return redirect(url_for('login'))
+
+  #Get all the user meal events 
+  cursor = g.conn.execute( text("""
+                            WITH user_logged_in as (
+                            SELECT * FROM msj2164.User_table 
+                            WHERE email = :user_email
+                            )
+                          
+                            SELECT concat(workout_id, ' | ', start_time, ' | ', end_time, ' | ', type) as name
+                            FROM user_logged_in u
+                            JOIN msj2164.Calendar c ON c.email = u.email
+                            JOIN msj2164.workout_event w ON c.calendar_id = w.calendar_id
+                            order by start_time desc 
+                            """), {"user_email":user_email})
+    
+  results = cursor.fetchall()
+
+  return render_template('workout_addition.html', items=results)
+
 
 
 if __name__ == "__main__":
