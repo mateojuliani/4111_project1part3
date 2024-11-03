@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Workout</title>
+</head>
+<body>
+
+    <div class="button-container"></div>
+        <a href="/return_dashboard" class="button">Return to dashboard</a>
+    </div>
+
+    <h3>Select a current workout you wish to add to...</h3>
+    <form action="/edit_current_workout" method="post">
+        <label for="item-select">Choose a meal to add to:</label>
+        <select id="item-select" name="selected_workout">
+            {% for item in items %}
+                <option value="{{ item[0] }}">{{ item[0] }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+
+
+    <h3>or a workout event to delete</h3>
+    <form action="/delete_workout" method="post">
+        <label for="item-select">Choose a meal to delete to:</label>
+        <select id="item-select" name="selected_workout_to_delete">
+            {% for item in items %}
+                <option value="{{ item[0] }}">{{ item[0] }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Delete</button>
+    </form>
+
+
+    
+</body>
+</html>

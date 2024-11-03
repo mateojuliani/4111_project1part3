@@ -134,10 +134,11 @@ def index():
   print(request.args)
   return render_template("login.html")
 
-#login in code
 @app.route('/login', methods=['POST'])
 def login():
-    
+    """
+    Code to login from main page
+    """
 
     email = request.form['email']
     
@@ -157,11 +158,17 @@ def login():
 #Log out
 @app.route('/logout')
 def logout():
+    """
+    Code to logout from the dashboard
+    """
     session.pop('user_email', None)  
     return render_template("login.html")
 
 @app.route('/daily_summary')
 def daily_summary():
+    """
+    Main app page
+    """
     # Get current user email
     user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
 
@@ -208,18 +215,12 @@ def daily_summary():
     return render_template('daily_summary.html', summaries=summaries, graph_html=graph_html)
     
 
-
-# @app.route('/add', methods=['POST'])
-# def add():
-#   name = request.form['name']
-#   print(name)
-#   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-#   g.conn.execute(text(cmd), name1 = name, name2 = name);
-#   return redirect('/')
-
 # Adding a new meal
 @app.route('/add_meal')
 def add_meal():
+  """
+  Takes user to the add meal page adn renders the ppage 
+  """
    
   user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
 
