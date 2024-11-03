@@ -278,6 +278,7 @@ def create_new_meal():
   date_time_string = datetime.datetime(year, month, day, hour, minute).strftime("%Y-%m-%d %H:%M:%S") 
   
   #TODO: Check if the value already exists in the db 
+  #TODO: Check if the date inputted is value, 
 
   cmd = 'INSERT INTO meal_event(calendar_id, start_time, type) VALUES (:calendar_id, :start_time, :meal_type)';
   g.conn.execute(text(cmd), 
@@ -399,7 +400,7 @@ def return_dashboard():
 
 #end of meal, start of workout
 
-# Adding a new meal
+# Adding a new workout page
 @app.route('/add_workout')
 def add_workout():
   """
@@ -428,6 +429,84 @@ def add_workout():
   results = cursor.fetchall()
 
   return render_template('workout_addition.html', items=results)
+
+# Adding a new workout
+@app.route('/create_new_workout', methods=['POST'])
+def create_new_workout():
+
+  #TODO: Fix this check_user_is_logged_in func
+  user_email = check_user_is_logged_in() #tbd if this works, update: turns out it doesnt really LOL
+
+  cal_id = g.conn.execute(text("""
+                            WITH user_logged_in as (
+                            SELECT * FROM msj2164.User_table 
+                            WHERE email = :user_email
+                            )
+                          
+                            SELECT calendar_id
+                            FROM user_logged_in u
+                            JOIN msj2164.Calendar c ON c.email = u.email
+                            """), {"user_email":user_email})
+  
+  cal_id_val = cal_id.fetchone()[0]
+
+  
+  start_year = int(request.form['start_year'])
+  start_month = int(request.form['start_month'])
+  start_day = int(request.form['start_day'])
+  start_hour = int(request.form['start_hour'])
+  start_minute = int(request.form['start_minute'])
+
+  end_year = int(request.form['end_year'])
+  end_month = int(request.form['end_month'])
+  end_day = int(request.form['end_day'])
+  end_hour = int(request.form['end_hour'])
+  end_minute = int(request.form['end_minute'])
+  
+  workout_type = request.form["workout_type"]
+
+
+  start_string = datetime.datetime(start_year, start_month, start_day, start_hour, start_minute).strftime("%Y-%m-%d %H:%M:%S") 
+  end_string = datetime.datetime(end_year, end_month, end_day, end_hour, end_minute).strftime("%Y-%m-%d %H:%M:%S") 
+
+  #TODO: Check if the value already exists in the db 
+  #TODO: Check if the date inputted is value, 
+  # print(cal_id_val)
+  # print(start_string)
+  # print(end_string)
+  # print(workout_type)
+
+  cmd = 'INSERT INTO workout_event (calendar_id, start_time, end_time, type) VALUES (:calendar_id, :start_time, :end_time, :workout_type)';
+  g.conn.execute(text(cmd), 
+                 {
+                "calendar_id":cal_id_val, 
+                 "start_time":start_string, 
+                 "end_time":end_string, 
+                 "workout_type":workout_type
+                 }
+                 );
+
+  cal_id.close()  # Close the session
+  return redirect('/add_workout')
+
+
+@app.route('/delete_workout', methods=['POST'])
+def delete_workout():
+
+  """
+  This is used to delete an workout item
+  """
+
+  user_email = check_user_is_logged_in() #tbd if this works 
+
+  workout_id_to_delete = request.form['selected_workout_to_delete'].split("|")[0]
+
+  #print(meal_id_to_delete)
+  cmd = 'DELETE FROM workout_event WHERE workout_id = :workout_id_to_delete';
+  g.conn.execute(text(cmd), {"workout_id_to_delete": workout_id_to_delete});
+
+  
+  return redirect('/add_workout')
 
 
 

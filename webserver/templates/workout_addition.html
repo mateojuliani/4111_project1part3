@@ -3,6 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Add Workout</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
 
@@ -10,7 +24,7 @@
         <a href="/return_dashboard" class="button">Return to dashboard</a>
     </div>
 
-    <h3>Select a current workout you wish to add to...</h3>
+    <h3>Select a current workout you wish to add</h3>
     <form action="/edit_current_workout" method="post">
         <label for="item-select">Choose a meal to add to:</label>
         <select id="item-select" name="selected_workout">
@@ -30,6 +44,118 @@
             {% endfor %}
         </select>
         <button type="submit">Delete</button>
+    </form>
+
+    <h3>or create a new workout event</h3>
+    <form action="/create_new_workout" method="post">
+        <table id="time_table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Year</th>
+                    <th>Month</th>
+                    <th>Day</th>
+                    <th>Hour</th>
+                    <th>Minute</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Start Time</td>
+                    <td>
+                        <select id="start-year-select" name="start_year" required>
+                            {% for year in range(2024, 2030) %}
+                                <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="start-month-select" name="start_month" required>
+                            {% for month in range(1, 13) %}
+                                <option value="{{ month }}">{{ month }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="start-day-select" name="start_day" required>
+                            {% for day in range(1, 32) %}
+                                <option value="{{ day }}">{{ day }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="start-hour-select" name="start_hour" required>
+                            {% for hour in range(0, 24) %}
+                                <option value="{{ hour }}">{{ hour }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="start-minute-select" name="start_minute" required>
+                            {% for minute in range(0, 60) %}
+                                <option value="{{ minute }}">{{ minute }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>End Time</td>
+                    <td>
+                        <select id="end-year-select" name="end_year" required>
+                            {% for year in range(2024, 2030) %}
+                                <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="end-month-select" name="end_month" required>
+                            {% for month in range(1, 13) %}
+                                <option value="{{ month }}">{{ month }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="end-day-select" name="end_day" required>
+                            {% for day in range(1, 32) %}
+                                <option value="{{ day }}">{{ day }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="end-hour-select" name="end_hour" required>
+                            {% for hour in range(0, 24) %}
+                                <option value="{{ hour }}">{{ hour }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="end-minute-select" name="end_minute" required>
+                            {% for minute in range(0, 60) %}
+                                <option value="{{ minute }}">{{ minute }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table id="description">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input type="text" name="workout_type" required>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        
+        <button type="submit">Submit a New Workout</button>
     </form>
 
 
