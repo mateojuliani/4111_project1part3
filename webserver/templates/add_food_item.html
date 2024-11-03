@@ -5,9 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Tracker</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
     <h1>Current Food Items</h1>
+
+    <div class="button-container"></div>
+        <a href="/return_add_meal" class="button">Return to add meals</a>
+        <a href="/return_dashboard" class="button">Return to dashboard</a>
+    </div>
 
     <table>
         <thead>

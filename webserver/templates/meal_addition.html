@@ -5,6 +5,11 @@
     <title>Add Meal</title>
 </head>
 <body>
+
+    <div class="button-container"></div>
+        <a href="/return_dashboard" class="button">Return to dashboard</a>
+    </div>
+
     <h3>Select a current meal you wish to add to...</h3>
     <form action="/edit_current_meal" method="post">
         <label for="item-select">Choose a meal to add to:</label>
@@ -16,7 +21,7 @@
         <button type="submit">Submit</button>
     </form>
 
-    <h3>or create a new meal event to add</h3>
+    <h3>...or create a new meal event to add...</h3>
     <form action="/create_new_meal" method="post">
         <div>
             <label for="year-select">Year:</label>
@@ -63,10 +68,21 @@
             </select>
         </div>
 
-        <label for="meal-type-input">Date:</label>
+        <label for="meal-type-input">Meal Description:</label>
         <input type="text" id="meal-type-input" name="meal-type" required>
 
         <button type="create_new_meal">Submit New Meal</button>
+    </form>
+
+    <h3>or a meal event to delete</h3>
+    <form action="/delete_meal" method="post">
+        <label for="item-select">Choose a meal to delete to:</label>
+        <select id="item-select" name="selected_meal_to_delete">
+            {% for item in items %}
+                <option value="{{ item[0] }}">{{ item[0] }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Delete</button>
     </form>
 
     

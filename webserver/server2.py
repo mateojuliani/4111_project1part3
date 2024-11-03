@@ -141,7 +141,7 @@ def login():
 
     email = request.form['email']
     
-    cursor = g.conn.execute("SELECT * FROM msj2164.User_table WHERE email = %s", (email,))
+    cursor = g.conn.execute(text("SELECT * FROM msj2164.User_table WHERE email = :email"), {"email":email})
     user = cursor.fetchone()
     
     if user:
@@ -168,10 +168,10 @@ def daily_summary():
     if not user_email:
       return redirect(url_for('login'))
 
-    cursor = g.conn.execute("""
+    cursor = g.conn.execute(text("""
                             WITH user_logged_in as (
                             SELECT * FROM msj2164.User_table 
-                            WHERE email = %s
+                            WHERE email = :user_email
                             )
 
                             
@@ -180,7 +180,7 @@ def daily_summary():
                             JOIN msj2164.Calendar c ON c.email = u.email
                             JOIN msj2164.Daily_summary ds ON c.calendar_id = ds.calendar_id
                             order by day 
-                            """, (user_email,))
+                            """), {"user_email":user_email})
     
     results = cursor.fetchall()
     
@@ -209,13 +209,13 @@ def daily_summary():
     
 
 
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  print(name)
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
+# @app.route('/add', methods=['POST'])
+# def add():
+#   name = request.form['name']
+#   print(name)
+#   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
+#   g.conn.execute(text(cmd), name1 = name, name2 = name);
+#   return redirect('/')
 
 # Adding a new meal
 @app.route('/add_meal')
@@ -227,10 +227,10 @@ def add_meal():
     return redirect(url_for('login'))
 
   #Get all the user meal events 
-  cursor = g.conn.execute("""
+  cursor = g.conn.execute( text("""
                             WITH user_logged_in as (
                             SELECT * FROM msj2164.User_table 
-                            WHERE email = %s
+                            WHERE email = :user_email
                             )
                           
                             SELECT concat(meal_id, ' | ', start_time, ' | ', type) as name
@@ -238,7 +238,7 @@ def add_meal():
                             JOIN msj2164.Calendar c ON c.email = u.email
                             JOIN msj2164.meal_event ms ON c.calendar_id = ms.calendar_id
                             order by start_time desc 
-                            """, (user_email,))
+                            """), {"user_email":user_email})
     
   results = cursor.fetchall()
 
@@ -254,16 +254,16 @@ def create_new_meal():
 
   user_email = check_user_is_logged_in() #tbd if this works 
 
-  cal_id = g.conn.execute("""
+  cal_id = g.conn.execute(text("""
                             WITH user_logged_in as (
                             SELECT * FROM msj2164.User_table 
-                            WHERE email = %s
+                            WHERE email = :user_email
                             )
                           
                             SELECT calendar_id
                             FROM user_logged_in u
                             JOIN msj2164.Calendar c ON c.email = u.email
-                            """, (user_email,))
+                            """), {"user_email":user_email})
   
   cal_id_val = cal_id.fetchone()[0]
 
@@ -279,9 +279,33 @@ def create_new_meal():
   #TODO: Check if the value already exists in the db 
 
   cmd = 'INSERT INTO meal_event(calendar_id, start_time, type) VALUES (:calendar_id, :start_time, :meal_type)';
-  g.conn.execute(text(cmd), calendar_id = cal_id_val, start_time = date_time_string, meal_type = meal_type);
+  g.conn.execute(text(cmd), 
+                 {
+                "calendar_id":cal_id_val, 
+                 "start_time":date_time_string, 
+                 "meal_type":meal_type
+                 }
+                 );
 
   cal_id.close()  # Close the session
+  return redirect('/add_meal')
+
+@app.route('/delete_meal', methods=['POST'])
+def delete_meal():
+
+  """
+  This is used to delete an meal item
+  """
+
+  user_email = check_user_is_logged_in() #tbd if this works 
+
+  meal_id_to_delete = request.form['selected_meal_to_delete'].split("|")[0]
+
+  #print(meal_id_to_delete)
+  cmd = 'DELETE FROM meal_event WHERE meal_id = :meal_id_to_delete';
+  g.conn.execute(text(cmd), {"meal_id_to_delete": meal_id_to_delete});
+
+  
   return redirect('/add_meal')
 
 #edit a current meal
@@ -302,17 +326,17 @@ def edit_current_meal():
     return redirect('/')
 
 
-  cursor = g.conn.execute("""
+  cursor = g.conn.execute(text("""
                             WITH meal_id as (
                             SELECT * FROM msj2164.meal_event 
-                            WHERE meal_id = %s
+                            WHERE meal_id = :meal_id
                             )
 
                             
                             SELECT * 
                             FROM meal_id as m
                             JOIN msj2164.Food f ON m.meal_id = f.meal_id
-                            """, (meal_id,))
+                            """), {"meal_id":meal_id})
     
   results = cursor.fetchall()
     
@@ -334,6 +358,9 @@ def edit_current_meal():
 
 @app.route('/add_new_food_item', methods=['POST'])
 def add_new_food_item():
+  """
+  Function to add new items to the 
+  """
 
   user_email = check_user_is_logged_in()
   meal_id = session.get('meal_id')
@@ -345,29 +372,29 @@ def add_new_food_item():
   fats = (request.form['fats'])
   protein = request.form['protein']
 
-  print(meal_id)
-  print(food_name)
-  print(grams)
-  print(calories)
-  print(carbs)
-  print(fats)
-  print(protein)
-
   cmd = 'INSERT INTO Food (meal_id, name, grams, calories, carbs, fats, protein) VALUES (:meal_id, :name, :grams, :calories, :carbs, :fats, :protein)';
+  #TODO: Might need to change these to help with sql injections
   g.conn.execute(text(cmd), 
-                 meal_id = meal_id, 
-                 name = food_name, 
-                 grams = grams, 
-                 calories = calories, 
-                 carbs = carbs, 
-                 fats = fats, 
-                 protein = protein);
+                 {
+                 "meal_id": meal_id, 
+                 "name": food_name, 
+                 "grams": grams, 
+                 "calories": calories, 
+                 "carbs": carbs, 
+                 "fats": fats, 
+                 "protein": protein
+                 });
 
   return redirect('/edit_current_meal')
 
+@app.route('/return_add_meal')
+def return_add_meal():
+  return redirect('/add_meal')
 
 
-
+@app.route('/return_dashboard')
+def return_dashboard():
+  return redirect('/daily_summary')
 
 
 if __name__ == "__main__":
