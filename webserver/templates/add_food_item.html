@@ -21,13 +21,13 @@
     </style>
 </head>
 <body>
-    <h1>Current Food Items</h1>
-
     <div class="button-container"></div>
         <a href="/return_add_meal" class="button">Return to add meals</a>
         <a href="/return_dashboard" class="button">Return to dashboard</a>
     </div>
 
+    <h1>Foods</h1>
+    <h3>Current Foods in Meal</h3>
     <table>
         <thead>
             <tr>
@@ -55,7 +55,7 @@
         </tbody>
     </table>
     
-    <h1>Add Food Items</h1>
+    <h3>Add Food Items</h3>
     <form action="/add_new_food_item" method="post">
         <table id="inputTable">
             <thead>
@@ -81,6 +81,17 @@
         </table>
     
         <button type="add_new_food_item">Add Another Food Item</button>
+    </form>
+
+    <h3>Delete a Food item</h3>
+    <form action="/delete_food_item" method="post">
+        <label for="item-select">Choose a Food Item to delete to:</label>
+        <select id="item-select" name="selected_food_to_delete">
+            {% for food_items in meal %}
+                <option value="{{ food_items.food_id }}">{{ food_items.food_id }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Delete</button>
     </form>
 
 </body>

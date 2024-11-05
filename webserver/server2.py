@@ -389,6 +389,22 @@ def add_new_food_item():
 
   return redirect('/edit_current_meal')
 
+@app.route('/delete_food_item', methods=['POST'])
+def delete_food_item():
+  """
+  This is used to delete a foods
+  """
+
+  user_email = check_user_is_logged_in() #tbd if this works 
+
+  try:
+    cmd = 'DELETE FROM Food WHERE food_id = :food_id';
+    g.conn.execute(text(cmd), {"food_id": request.form["selected_food_to_delete"]});
+  except:
+    flash("Error Deleting Food")
+
+  return redirect('/edit_current_meal')
+
 @app.route('/return_add_meal')
 def return_add_meal():
   return redirect('/add_meal')
