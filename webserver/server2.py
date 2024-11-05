@@ -18,7 +18,7 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response, session, url_for
+from flask import Flask, request, render_template, g, redirect, Response, session, url_for, flash
 import pandas as pd
 import plotly.express as px
 import datetime
@@ -508,7 +508,175 @@ def delete_workout():
   
   return redirect('/add_workout')
 
+@app.route('/edit_current_workout', methods=['POST', 'GET'])
+def edit_current_workout():
 
+  
+  user_email = check_user_is_logged_in()
+
+  if 'selected_workout' in request.form:
+    workout_selected = request.form['selected_workout']
+    workout_id = workout_selected.split("|")[0]
+    session['workout_id'] = workout_id
+
+  elif 'workout_id' in session:
+    workout_id = session['workout_id']
+  
+  else:
+    return redirect('/')
+
+  #get lift items
+  cursor_lift = g.conn.execute(text("""
+                            WITH workout_id as (
+                            SELECT * FROM msj2164.workout_event 
+                            WHERE workout_id = :workout_id
+                            )
+                            SELECT * 
+                            FROM workout_id as m
+                            JOIN msj2164.Lift f ON m.workout_id = f.workout_id
+                            """), {"workout_id":workout_id})
+    
+  results_lift = cursor_lift.fetchall()
+    
+
+  lifts = [
+        {
+            'lift_id':row['lift_id'],
+            'type': row['type'],
+            'weight': row['weight'],
+            'reps': row['reps'],
+            'sets': row['sets'],
+
+        }
+        for row in results_lift
+  ]
+
+  #get cardio items
+
+  cursor_cardio = g.conn.execute(text("""
+                            WITH workout_id as (
+                            SELECT * FROM msj2164.workout_event 
+                            WHERE workout_id = :workout_id
+                            )
+                            SELECT * 
+                            FROM workout_id as m
+                            JOIN msj2164.cardio f ON m.workout_id = f.workout_id
+                            """), {"workout_id":workout_id})
+    
+  results_cardio = cursor_cardio.fetchall()
+    
+
+  cardios = [
+        {
+            'cardio_id':row['cardio_id'],
+            'type': row['type'],
+            'duration': row['duration'],
+        }
+        for row in results_cardio
+  ]
+
+  return render_template('/add_lift_cardio.html', lifts = lifts, cardios = cardios)
+
+@app.route('/add_new_lift', methods=['POST'])
+def add_new_lift():
+  """
+  Function to add new items to the lift table
+  """
+
+  # TODO: Set this up properly
+  # This is an good way to handle making sure workout id is valid
+  workout_id = session.get('workout_id')
+  if not workout_id:
+    return redirect('/edit_current_workout')
+
+  user_email = check_user_is_logged_in()
+
+  data_to_insert = {
+    "workout_id": workout_id, 
+    "type": request.form['type'], 
+    "weight": request.form['weight'], 
+    "reps": request.form['reps'], 
+    "sets": request.form['sets'], 
+  }
+
+  cmd = 'INSERT INTO Lift(workout_id, type, weight, reps, sets) VALUES (:workout_id, :type, :weight, :reps, :sets)';
+  g.conn.execute(text(cmd), data_to_insert);
+
+  return redirect('/edit_current_workout')
+
+@app.route('/add_new_cardio', methods=['POST'])
+def add_new_cardio():
+  """
+  Function to add new items to the cardio table
+  """
+
+  # TODO: Set this up properly
+  # This is an interesting way to handle making sure workout id is valid
+  workout_id = session.get('workout_id')
+  if not workout_id:
+    return redirect('/edit_current_workout')
+
+  user_email = check_user_is_logged_in()
+
+  data_to_insert = {
+    "workout_id": workout_id, 
+    "type": request.form['type'], 
+    "duration": request.form['duration'], 
+  }
+
+  #TODO: add this try catch to all of this stuff  
+  try:
+    cmd = 'INSERT INTO cardio(workout_id, type, duration) VALUES (:workout_id, :type, :duration)';
+    g.conn.execute(text(cmd), data_to_insert);
+  except:
+    #TODO: investigate if we can use rollback? rollback()
+    #Tbd if flash does anything?
+    #flash("An error occured with adding the data. Please revise inputs")
+    return redirect('/edit_current_workout')
+
+  return redirect('/edit_current_workout')
+
+@app.route('/delete_lift', methods=['POST'])
+def delete_lift():
+  """
+  This is used to delete a lift item
+  """
+
+  user_email = check_user_is_logged_in() #tbd if this works 
+
+  try:
+    cmd = 'DELETE FROM Lift WHERE lift_id = :lift_id';
+    g.conn.execute(text(cmd), {"lift_id": request.form["selected_lift_to_delete"]});
+  except:
+    flash("Error Deleting Lift")
+
+  return redirect('/edit_current_workout')
+
+@app.route('/delete_cardio', methods=['POST'])
+def delete_cardio():
+  """
+  This is used to delete a cardio item
+  """
+
+  user_email = check_user_is_logged_in() #tbd if this works 
+
+  try:
+    cmd = 'DELETE FROM cardio WHERE cardio_id = :cardio_id';
+    g.conn.execute(text(cmd), {"cardio_id": request.form["selected_cardio_to_delete"]});
+  except:
+    flash("Error Deleting Cardio")
+
+  return redirect('/edit_current_workout')
+
+
+@app.route('/return_add_workout')
+def return_add_workout():
+  return redirect('/add_workout')
+
+
+
+#TODO: Some of these things you cant get bc i believe you just put them as POST, not GET
+#Maybe that is how the 
 
 if __name__ == "__main__":
   import click

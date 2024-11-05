@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container"></div>
+        <a href="/return_add_workout" class="button">Return to add workouts</a>
+        <a href="/return_dashboard" class="button">Return to dashboard</a>
+    </div>
+
+    <h1>Lifts</h1>
+    <h3>View Current Lifts</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>lift_id</th>
+                <th>type</th>
+                <th>weight</th>
+                <th>reps</th>
+                <th>sets</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lift in lifts %}
+                <tr>
+                    <td>{{ lift.lift_id }}</td>
+                    <td>{{ lift.type }}</td>
+                    <td>{{ lift.weight }}</td>
+                    <td>{{ lift.reps }}</td>
+                    <td>{{ lift.sets }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Add New Lift</h3>
+    <form action="/add_new_lift" method="post">
+        <table id="inputTable">
+            <thead>
+                <tr>
+                    <th>type</th>
+                    <th>weight</th>
+                    <th>reps</th>
+                    <th>sets</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" name="type" required></td>
+                    <td><input type="number" name="weight" required></td>
+                    <td><input type="number" name="reps" required></td>
+                    <td><input type="number" name="sets" required></td>
+                </tr>
+            </tbody>
+        </table>
+    
+        <button type="add_new_lift">Add a Lift</button>
+    </form>
+
+    <h3>Delete a Lift</h3>
+    <form action="/delete_lift" method="post">
+        <label for="item-select">Choose a Lift to delete to:</label>
+        <select id="item-select" name="selected_lift_to_delete">
+            {% for lift in lifts %}
+                <option value="{{ lift.lift_id }}">{{ lift.lift_id }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Delete</button>
+    </form>
+    
+    <h1>Cardio</h1>
+    <h3>View Current Cardios</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>cardio_id</th>
+                <th>type</th>
+                <th>duration</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cardio in cardios %}
+                <tr>
+                    <td>{{ cardio.cardio_id }}</td>
+                    <td>{{ cardio.type }}</td>
+                    <td>{{ cardio.duration }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Add Cardio Session</h3>
+    <form action="/add_new_cardio" method="post">
+        <table id="inputTable">
+            <thead>
+                <tr>
+                    <th>type</th>
+                    <th>duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" name="type" required></td>
+                    <td><input type="number" name="duration" required></td>
+                </tr>
+            </tbody>
+        </table>
+    
+        <button type="add_new_cardio">Add Cardio Session</button>
+    </form>
+
+    <h3>Delete a Cardio</h3>
+    <form action="/delete_cardio" method="post">
+        <label for="item-select">Choose a Cardio to delete to:</label>
+        <select id="item-select" name="selected_cardio_to_delete">
+            {% for cardio in cardios %}
+                <option value="{{ cardio.cardio_id }}">{{ cardio.cardio_id }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Delete</button>
+    </form>
+
+</body>
+</html>
