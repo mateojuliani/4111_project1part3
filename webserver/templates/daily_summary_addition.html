@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container"></div>
+        <a href="/return_dashboard" class="button">Return to dashboard</a>
+    </div>
+
+    <h1>Daily Summaries</h1>
+    <h3>Daily Summaries</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Summary ID</th>
+                <th>Calendar ID</th>
+                <th>Day</th>
+                <th>Rating</th>
+                <th>Weight</th>
+                <th>Sleep Quality</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for summary in summaries %}
+                <tr>
+                    <td>{{ summary.summary_id }}</td>
+                    <td>{{ summary.calendar_id }}</td>
+                    <td>{{ summary.day }}</td>
+                    <td>{{ summary.rating }}</td>
+                    <td>{{ summary.weight }}</td>
+                    <td>{{ summary.sleep_quality }}</td>
+                    <td>{{ summary.notes }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>Add New Summary</h3>
+    <form action="/add_new_daily_summary" method="post">
+        <table id="inputTable">
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Month</th>
+                    <th>Day</th>
+                    <th>Rating</th>
+                    <th>Weight</th>
+                    <th>Sleep Quality</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <select id="year-select" name="year" required>
+                            {% for year in range(2024, 2030) %}
+                                <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="month-select" name="month" required>
+                            {% for month in range(1, 13) %}
+                                <option value="{{ month }}">{{ month }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="day-select" name="day" required>
+                            {% for day in range(1, 32) %}
+                                <option value="{{ day }}">{{ day }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="number" name="rating" required></td>
+                    <td><input type="number" name="weight" required></td>
+                    <td><input type="number" name="sleep_quality" required></td>
+                    <td><input type="text" name="notes" required></td>
+                </tr>
+            </tbody>
+        </table>
+    
+        <button type="add_new_daily_summary">Add Daily Summary</button>
+    </form>
+
+    <h3>Delete Daily Summary</h3>
+    <form action="/delete_daily_summary" method="post">
+        <label for="item-select">Choose daily summary to delete to:</label>
+        <select id="item-select" name="selected_ds_delete">
+            {% for summary in summaries %}
+                <option value="{{ summary.summary_id }}">{{ summary.summary_id  }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Delete</button>
+    </form>
+
+</body>
+</html>

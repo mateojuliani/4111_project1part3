@@ -25,6 +25,7 @@ import datetime
 #import blueprints
 from workout_functions import workout_bp
 from meal_functions import meals_bp
+from daily_summary import daily_summary_bp
 
 
 
@@ -35,6 +36,7 @@ app.secret_key = '_5#y2L"F4_joe_Q8z\n\xec]/jhsdfsjnhfhhfehehf'
 
 app.register_blueprint(workout_bp)
 app.register_blueprint(meals_bp)
+app.register_blueprint(daily_summary_bp)
 
 # XXX: The Database URI should be in the format of: 
 #
@@ -65,7 +67,7 @@ engine = create_engine(DATABASEURI)
 # Here we create a test table and insert some values in it
 
 # Mateo - 11/1/24 - Commented out 
-engine.execute("""DROP TABLE IF EXISTS test;""")
+#engine.execute("""DROP TABLE IF EXISTS test;""")
 # engine.execute("""CREATE TABLE IF NOT EXISTS test (
 #   id serial,
 #   name text
@@ -152,7 +154,7 @@ def login():
     if user:
         session['user_email'] = email  # Store the email in session
         cursor.close()
-        return redirect(url_for('daily_summary'))
+        return redirect(url_for('landing_page'))
     else:
         # g.conn.execute("INSERT INTO users (email) VALUES (:email)", {'email': email})
         # session['user_email'] = email  # Store new user email in session
@@ -168,8 +170,8 @@ def logout():
     session.pop('user_email', None)  
     return render_template("login.html")
 
-@app.route('/daily_summary')
-def daily_summary():
+@app.route('/landing_page')
+def landing_page():
     """
     Main app page
     """
@@ -216,7 +218,7 @@ def daily_summary():
     graph_html = fig.to_html(full_html=False)
 
     cursor.close()  # Close the session
-    return render_template('daily_summary.html', summaries=summaries, graph_html=graph_html)
+    return render_template('landing_page.html', summaries=summaries, graph_html=graph_html)
     
 
 

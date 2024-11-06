@@ -214,4 +214,4 @@ def return_add_meal():
 
 @meals_bp.route('/return_dashboard')
 def return_dashboard():
-  return redirect('/daily_summary')
+  return redirect('/landing_page')
