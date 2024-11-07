@@ -8,6 +8,7 @@ import datetime
 
 meals_bp = Blueprint('meal_functions', __name__)
 
+#BUG: If the user has no meals or workouts, and they try to edit it, they will be logged out since the form does not exist
 
 
 # Adding a new meal
@@ -100,9 +101,30 @@ def delete_meal():
 @meals_bp.route('/edit_current_meal', methods=['POST', 'GET'])
 def edit_current_meal():
 
+
+  #TODO: Add a check to make sure there is a meal event to begin with, i.e. meal 
+
   user_email = session.get('user_email') 
   calendar_id = session.get('calendar_id') 
 
+  check_meals_exit = g.conn.execute(text("""
+                            
+                            SELECT * FROM msj2164.meal_event 
+                            WHERE calendar_id = :calendar_id
+                            
+
+                            """), {"calendar_id":calendar_id})
+  
+  meal_exist = check_meals_exit.fetchall()
+
+  #This is used to check that a meal exists, otherwise the user gets logged out
+  if not meal_exist:
+    check_meals_exit.close()
+    return redirect('/add_meal')
+  check_meals_exit.close()
+
+
+  #make sure a session is active 
   if not user_email or not calendar_id:
     return redirect('/logout')
 
@@ -115,7 +137,7 @@ def edit_current_meal():
     meal_id = session['meal_id']
   
   else:
-    return redirect('/')
+    return redirect('/logout')
 
 
   cursor = g.conn.execute(text("""

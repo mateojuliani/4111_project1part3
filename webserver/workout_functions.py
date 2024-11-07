@@ -128,6 +128,22 @@ def edit_current_workout():
   user_email = session.get('user_email') 
   calendar_id = session.get('calendar_id') 
 
+  check_workout_exit = g.conn.execute(text("""
+                            
+                            SELECT * FROM msj2164.workout_event 
+                            WHERE calendar_id = :calendar_id
+                            
+
+                            """), {"calendar_id":calendar_id})
+  
+  workout_exist = check_workout_exit.fetchall()
+
+  #This is used to check that a meal exists, otherwise the user gets logged out
+  if not workout_exist:
+    check_workout_exit.close()
+    return redirect('/add_workout')
+  check_workout_exit.close()
+
   if not user_email or not calendar_id:
     return redirect('/logout')
 
