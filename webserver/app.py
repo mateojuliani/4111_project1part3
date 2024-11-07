@@ -221,7 +221,8 @@ def landing_page():
 
     if not user_email or not calendar_id:
       return redirect(url_for('logout'))
-
+    
+    # Graph 1: track daily ratings and sleep quality over time
     cursor = g.conn.execute(text("""
                             SELECT * 
                             FROM msj2164.Daily_summary
@@ -245,16 +246,119 @@ def landing_page():
         for row in results
     ]
 
-    data_plot_1 = [(row['day'], row['rating']) for row in results]
-    df = pd.DataFrame(data_plot_1, columns=['day', 'rating'])
+    data_plot_1 = [(row['day'], row['rating'], row['sleep_quality']) for row in results]
+    df = pd.DataFrame(data_plot_1, columns=['day', 'rating', 'sleep_quality'])
 
-    fig = px.line(df, x='day', y='rating', title='Daily Ratings Over Time')
-    graph_html = fig.to_html(full_html=False)
+    fig = None
+
+    if df.empty:
+        fig = px.line(df, x='day', y='rating', title='Daily Ratings and Sleep Quality Over Time')
+    else:
+        fig = px.line(df, x='day', y=['rating', 'sleep_quality'], title='Daily Ratings and Sleep Quality Tracker')
+    
+    fig.update_yaxes(range=[0, 10])
+    graph1_html = fig.to_html(full_html=False)
+
+    # Graph 2: track weight over time
+    data_plot_2 = [(row['day'], row['weight']) for row in results]
+    df = pd.DataFrame(data_plot_2, columns=['day', 'weight'])
+
+    fig = px.line(df, x='day', y='weight', title='Weight Tracker')
+    graph2_html = fig.to_html(full_html=False)
+
+    # Graph 3: track number of calories consumed per day
+    cursor = g.conn.execute(text("""
+                            SELECT DATE(Meal_event.start_time) AS day, SUM(Food.calories) AS calories
+                            FROM msj2164.Meal_event
+                            JOIN Food ON Meal_event.meal_id = Food.meal_id
+                            WHERE Meal_event.calendar_id = :calendar_id
+                            GROUP BY day
+                            ORDER BY day                      
+                            """), {"calendar_id":calendar_id})
+    
+    results = cursor.fetchall()
+
+    data_plot_3 = [(row['day'], row['calories']) for row in results]
+    df = pd.DataFrame(data_plot_3, columns=['day', 'calories'])
+
+    fig = px.line(df, x='day', y='calories', title='Daily Calories Consumed Over Time')
+    graph3_html = fig.to_html(full_html=False)    
+
+    # Graph 4: list top 10 most eaten foods
+    cursor = g.conn.execute(text("""
+                            SELECT Food.name AS food, COUNT(Food.food_id) AS freq
+                            FROM msj2164.Meal_event
+                            JOIN Food ON Meal_event.meal_id = FOod.meal_id
+                            WHERE Meal_event.calendar_id = :calendar_id
+                            GROUP BY Food.name
+                            ORDER BY freq DESC
+                            LIMIT 10
+                            """), {"calendar_id":calendar_id})
+    
+    results = cursor.fetchall()
+
+    data_plot_4 = [(row['food'], row['freq']) for row in results]
+    df = pd.DataFrame(data_plot_4, columns=['food', 'freq'])
+
+    fig = px.bar(df, x='food', y='freq', title='10 Most Eaten Foods')
+    graph4_html = fig.to_html(full_html=False)
+
+    # Graph 5: track average sleep quality and rating per type of workout
+    cursor = g.conn.execute(text("""
+                            SELECT
+                              COALESCE(Lower(we.type), 'no workout') AS workout,
+                              AVG(ds.sleep_quality) AS average_sleep_quality, AVG(ds.rating) AS average_rating
+                            FROM msj2164.Daily_summary ds
+                            JOIN msj2164.Calendar c ON ds.calendar_id = c.calendar_id
+                            LEFT JOIN msj2164.Workout_event we ON c.calendar_id = we.calendar_id
+                            WHERE c.calendar_id = :calendar_id
+                            GROUP BY workout
+                            ORDER BY average_sleep_quality DESC
+                            """), {"calendar_id":calendar_id}) 
+    
+    results = cursor.fetchall()
+
+    data_plot_5 = [(row['workout'], row['average_sleep_quality'], row['average_rating']) for row in results]
+    df = pd.DataFrame(data_plot_5, columns=['workout', 'average_sleep_quality', 'average_rating'])
+
+    fig = None
+
+    if df.empty:
+        fig = px.bar(df, x='workout', y='average_sleep_quality', title='Average Sleep Quality per Type of Workout')
+    else:
+        df_melted = df.melt(id_vars='workout', value_vars=['average_sleep_quality', 'average_rating'], var_name='Metric', value_name='Value')
+        fig = px.bar(df_melted, x='workout', y='Value', color='Metric', barmode='group', title='Average Sleep Quality and Rating per Type of Workout')
+ 
+    graph5_html = fig.to_html(full_html=False)
+
+    # Graph 6: show macros split
+    cursor = g.conn.execute(text("""
+                            SELECT
+                                SUM(Food.carbs) AS total_carbs,
+                                SUM(Food.protein) AS total_protein,
+                                SUM(Food.fats) AS total_fats
+                            FROM msj2164.Meal_event
+                            JOIN Food ON Meal_event.meal_id = Food.meal_id
+                            WHERE Meal_event.calendar_id = :calendar_id
+                            """), {"calendar_id":calendar_id})
+    
+    results = cursor.fetchone()
+
+    data_plot_6 = [(macro, total) for macro, total in results.items()]
+    df = pd.DataFrame(data_plot_6, columns=['macro', 'total'])
+
+    fig = px.pie(df, values='total', names='macro', title='Macros Split')
+    graph6_html = fig.to_html(full_html=False)
 
     cursor.close()  # Close the session
-    return render_template('landing_page.html', summaries=summaries, graph_html=graph_html)
-    
-
+    return render_template('landing_page.html',
+                           summaries=summaries,
+                           graph1_html=graph1_html,
+                           graph2_html=graph2_html,
+                           graph3_html=graph3_html,
+                           graph4_html=graph4_html,
+                           graph5_html=graph5_html,
+                           graph6_html=graph6_html)
 
 #end of meal, start of workout
 
