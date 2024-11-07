@@ -26,6 +26,7 @@ import datetime
 from workout_functions import workout_bp
 from meal_functions import meals_bp
 from daily_summary import daily_summary_bp
+from select_calendar import calendar_id_bp
 
 
 
@@ -37,6 +38,7 @@ app.secret_key = '_5#y2L"F4_joe_Q8z\n\xec]/jhsdfsjnhfhhfehehf'
 app.register_blueprint(workout_bp)
 app.register_blueprint(meals_bp)
 app.register_blueprint(daily_summary_bp)
+app.register_blueprint(calendar_id_bp)
 
 # XXX: The Database URI should be in the format of: 
 #
@@ -145,6 +147,11 @@ def login():
     """
     Code to login from main page
     """
+    
+    session.pop('user_email', None) 
+    session.pop('calendar_id', None)
+    session.pop('meal_id', None) 
+    session.pop('workout_id', None) 
 
     email = request.form['email']
     
@@ -154,7 +161,8 @@ def login():
     if user:
         session['user_email'] = email  # Store the email in session
         cursor.close()
-        return redirect(url_for('landing_page'))
+        return redirect("/select_calendar")
+        #return redirect(url_for('landing_page'))
     else:
         # g.conn.execute("INSERT INTO users (email) VALUES (:email)", {'email': email})
         # session['user_email'] = email  # Store new user email in session
@@ -167,8 +175,40 @@ def logout():
     """
     Code to logout from the dashboard
     """
-    session.pop('user_email', None)  
+    session.pop('user_email', None) 
+    session.pop('calendar_id', None)
+    session.pop('meal_id', None) 
+    session.pop('workout_id', None) 
     return render_template("login.html")
+
+@app.route('/add_new_user_page', methods=['POST'])
+def add_new_user_page():
+    """
+    takes user to page to add new user
+    """
+    
+    return render_template("add_user_page.html")
+
+@app.route('/add_new_user', methods=['POST'])
+def add_new_user():
+    """
+    Code to add a new user
+    For now, it is empty
+    """
+
+    data_to_insert = {"email":request.form["email"],
+                      "name":request.form["name"],
+                      "height":request.form["height"]
+                      }
+
+    try:
+        cmd = 'INSERT INTO User_table(email, name, height) VALUES (:email, :name, :height)';
+        g.conn.execute(text(cmd), data_to_insert);
+        #print("added_name")
+    except:
+        flash("error adding data")
+
+    return redirect("/")
 
 @app.route('/landing_page')
 def landing_page():
@@ -176,24 +216,18 @@ def landing_page():
     Main app page
     """
     # Get current user email
-    user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
+    user_email = session.get('user_email') 
+    calendar_id = session.get('calendar_id')
 
-    if not user_email:
-      return redirect(url_for('login'))
+    if not user_email or not calendar_id:
+      return redirect(url_for('logout'))
 
     cursor = g.conn.execute(text("""
-                            WITH user_logged_in as (
-                            SELECT * FROM msj2164.User_table 
-                            WHERE email = :user_email
-                            )
-
-                            
                             SELECT * 
-                            FROM user_logged_in u
-                            JOIN msj2164.Calendar c ON c.email = u.email
-                            JOIN msj2164.Daily_summary ds ON c.calendar_id = ds.calendar_id
+                            FROM msj2164.Daily_summary
+                            where calendar_id = :calendar_id
                             order by day 
-                            """), {"user_email":user_email})
+                            """), {"calendar_id":calendar_id})
     
     results = cursor.fetchall()
     

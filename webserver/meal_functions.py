@@ -8,14 +8,6 @@ import datetime
 
 meals_bp = Blueprint('meal_functions', __name__)
 
-def check_user_is_logged_in(): #this is a bad practice but oh well im too lazy to change it
-  user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
-
-  if not user_email:
-    return redirect(url_for('login'))
-  
-  else: return user_email
-
 
 
 # Adding a new meal
@@ -25,26 +17,22 @@ def add_meal():
   Takes user to the add meal page adn renders the ppage 
   """
    
-  user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
 
-  if not user_email:
-    return redirect(url_for('login'))
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   #Get all the user meal events 
-  cursor = g.conn.execute( text("""
-                            WITH user_logged_in as (
-                            SELECT * FROM msj2164.User_table 
-                            WHERE email = :user_email
-                            )
-                          
+  cursor = g.conn.execute( text("""                          
                             SELECT concat(meal_id, ' | ', start_time, ' | ', type) as name
-                            FROM user_logged_in u
-                            JOIN msj2164.Calendar c ON c.email = u.email
-                            JOIN msj2164.meal_event ms ON c.calendar_id = ms.calendar_id
+                            FROM msj2164.meal_event
+                            where calendar_id = :cal_id
                             order by start_time desc 
-                            """), {"user_email":user_email})
+                            """), {"cal_id":calendar_id})
     
   results = cursor.fetchall()
+  cursor.close()
 
   return render_template('meal_addition.html', items=results)
 
@@ -56,20 +44,11 @@ def create_new_meal():
   This is used to create a new entry in the meal_event table
   """
 
-  user_email = check_user_is_logged_in() #tbd if this works 
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
 
-  cal_id = g.conn.execute(text("""
-                            WITH user_logged_in as (
-                            SELECT * FROM msj2164.User_table 
-                            WHERE email = :user_email
-                            )
-                          
-                            SELECT calendar_id
-                            FROM user_logged_in u
-                            JOIN msj2164.Calendar c ON c.email = u.email
-                            """), {"user_email":user_email})
-  
-  cal_id_val = cal_id.fetchone()[0]
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   year = int(request.form['year'])
   month = int(request.form['month'])
@@ -86,13 +65,13 @@ def create_new_meal():
   cmd = 'INSERT INTO meal_event(calendar_id, start_time, type) VALUES (:calendar_id, :start_time, :meal_type)';
   g.conn.execute(text(cmd), 
                  {
-                "calendar_id":cal_id_val, 
+                "calendar_id":calendar_id, 
                  "start_time":date_time_string, 
                  "meal_type":meal_type
                  }
                  );
 
-  cal_id.close()  # Close the session
+  #cal_id.close()  # Close the session
   return redirect('/add_meal')
 
 @meals_bp.route('/delete_meal', methods=['POST'])
@@ -102,7 +81,11 @@ def delete_meal():
   This is used to delete an meal item
   """
 
-  user_email = check_user_is_logged_in() #tbd if this works 
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   meal_id_to_delete = request.form['selected_meal_to_delete'].split("|")[0]
 
@@ -117,7 +100,11 @@ def delete_meal():
 @meals_bp.route('/edit_current_meal', methods=['POST', 'GET'])
 def edit_current_meal():
 
-  user_email = check_user_is_logged_in()
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   if 'selected_meal' in request.form:
     meal_selected = request.form['selected_meal']
@@ -167,7 +154,12 @@ def add_new_food_item():
   Function to add new items to the 
   """
 
-  user_email = check_user_is_logged_in()
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
+  
   meal_id = session.get('meal_id')
 
   food_name = (request.form['food_name'])
@@ -198,7 +190,11 @@ def delete_food_item():
   This is used to delete a foods
   """
 
-  user_email = check_user_is_logged_in() #tbd if this works 
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   try:
     cmd = 'DELETE FROM Food WHERE food_id = :food_id';
@@ -210,8 +206,11 @@ def delete_food_item():
 
 @meals_bp.route('/return_add_meal')
 def return_add_meal():
+  session.pop('meal_id', None)
   return redirect('/add_meal')
 
 @meals_bp.route('/return_dashboard')
 def return_dashboard():
+  session.pop('meal_id', None)
+  session.pop('workout_id', None)
   return redirect('/landing_page')

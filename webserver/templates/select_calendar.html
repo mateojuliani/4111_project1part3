@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Meal</title>
+</head>
+<body>
+
+    <div class="button-container"></div>
+        <a href="/logout" class="button">Log Out</a>
+    </div>
+
+    <h3>Select a calendar you wish to use...</h3>
+    <form action="/select_calendar_to_view" method="post">
+        <label for="item-select">Choose a calendar to view to:</label>
+        <select id="item-select" name="selected_calendar">
+            {% for item in items %}
+                <option value="{{ item.calendar_id }}">{{ item.calendar_id }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h3>...or create a new calendar...</h3>
+    <form action="/create_new_calendar" method="post">
+        <button type="submit">Create a new calendar</button>
+    </form>
+
+    <h3>or delete a calendar</h3>
+    <form action="/delete_calendar" method="post">
+        <label for="item-select">Choose a calendar to delete to:</label>
+        <select id="item-select" name="selected_cal_id_to_delete">
+            {% for item in items %}
+                <option value="{{ item.calendar_id }}">{{ item.calendar_id }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Delete</button>
+    </form>
+
+    <h1>DELETE USER</h1>
+    <h3>Click here to delete your user. Note all your data will be deleted. You will be logged out following this action</h3>
+    <form action="/delete_user" method="post">
+        <button type="submit">Delete</button>
+    </form>
+
+    
+</body>
+</html>

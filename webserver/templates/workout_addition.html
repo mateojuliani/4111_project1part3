@@ -26,7 +26,7 @@
 
     <h3>Select a current workout you wish to add</h3>
     <form action="/edit_current_workout" method="post">
-        <label for="item-select">Choose a meal to add to:</label>
+        <label for="item-select">Choose a workout to edit:</label>
         <select id="item-select" name="selected_workout">
             {% for item in items %}
                 <option value="{{ item[0] }}">{{ item[0] }}</option>
@@ -37,7 +37,7 @@
 
     <h3>or a workout event to delete</h3>
     <form action="/delete_workout" method="post">
-        <label for="item-select">Choose a meal to delete to:</label>
+        <label for="item-select">Choose a workout to delete:</label>
         <select id="item-select" name="selected_workout_to_delete">
             {% for item in items %}
                 <option value="{{ item[0] }}">{{ item[0] }}</option>

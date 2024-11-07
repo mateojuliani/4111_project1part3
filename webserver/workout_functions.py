@@ -8,39 +8,25 @@ import datetime
 
 workout_bp = Blueprint('workout_functions', __name__)
 
-def check_user_is_logged_in(): #this is a bad practice but oh well im too lazy to change it
-  user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
-
-  if not user_email:
-    return redirect(url_for('login'))
-  
-  else: return user_email
-
-
 @workout_bp.route('/add_workout')
 def add_workout():
   """
   Takes user to the add workout page and renders the page 
   """
    
-  user_email = session.get('user_email') #TODO: Check that this isnt using an ORM
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
 
-  if not user_email:
-    return redirect(url_for('login'))
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   #Get all the user meal events 
-  cursor = g.conn.execute( text("""
-                            WITH user_logged_in as (
-                            SELECT * FROM msj2164.User_table 
-                            WHERE email = :user_email
-                            )
-                          
+  cursor = g.conn.execute( text("""                          
                             SELECT concat(workout_id, ' | ', start_time, ' | ', end_time, ' | ', type) as name
-                            FROM user_logged_in u
-                            JOIN msj2164.Calendar c ON c.email = u.email
-                            JOIN msj2164.workout_event w ON c.calendar_id = w.calendar_id
+                            FROM msj2164.workout_event
+                            where calendar_id = :cal_id
                             order by start_time desc 
-                            """), {"user_email":user_email})
+                            """), {"cal_id":calendar_id})
     
   results = cursor.fetchall()
 
@@ -51,20 +37,24 @@ def add_workout():
 def create_new_workout():
 
   #TODO: Fix this check_user_is_logged_in func
-  user_email = check_user_is_logged_in() #tbd if this works, update: turns out it doesnt really LOL
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
 
-  cal_id = g.conn.execute(text("""
-                            WITH user_logged_in as (
-                            SELECT * FROM msj2164.User_table 
-                            WHERE email = :user_email
-                            )
+  if not user_email or not calendar_id:
+    return redirect('/logout')
+
+  # cal_id = g.conn.execute(text("""
+  #                           WITH user_logged_in as (
+  #                           SELECT * FROM msj2164.User_table 
+  #                           WHERE email = :user_email
+  #                           )
                           
-                            SELECT calendar_id
-                            FROM user_logged_in u
-                            JOIN msj2164.Calendar c ON c.email = u.email
-                            """), {"user_email":user_email})
+  #                           SELECT calendar_id
+  #                           FROM user_logged_in u
+  #                           JOIN msj2164.Calendar c ON c.email = u.email
+  #                           """), {"user_email":user_email})
   
-  cal_id_val = cal_id.fetchone()[0]
+  # cal_id_val = cal_id.fetchone()[0]
 
   
   start_year = int(request.form['start_year'])
@@ -95,14 +85,14 @@ def create_new_workout():
   cmd = 'INSERT INTO workout_event (calendar_id, start_time, end_time, type) VALUES (:calendar_id, :start_time, :end_time, :workout_type)';
   g.conn.execute(text(cmd), 
                  {
-                "calendar_id":cal_id_val, 
+                "calendar_id":calendar_id, 
                  "start_time":start_string, 
                  "end_time":end_string, 
                  "workout_type":workout_type
                  }
                  );
 
-  cal_id.close()  # Close the session
+  #cal_id.close()  # Close the session
   return redirect('/add_workout')
 
 
@@ -113,13 +103,20 @@ def delete_workout():
   This is used to delete an workout item
   """
 
-  user_email = check_user_is_logged_in() #tbd if this works 
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
 
-  workout_id_to_delete = request.form['selected_workout_to_delete'].split("|")[0]
+  if not user_email or not calendar_id:
+    return redirect('/logout') 
 
-  #print(meal_id_to_delete)
-  cmd = 'DELETE FROM workout_event WHERE workout_id = :workout_id_to_delete';
-  g.conn.execute(text(cmd), {"workout_id_to_delete": workout_id_to_delete});
+  
+
+  try:
+    workout_id_to_delete = request.form['selected_workout_to_delete'].split("|")[0]
+    cmd = 'DELETE FROM workout_event WHERE workout_id = :workout_id_to_delete';
+    g.conn.execute(text(cmd), {"workout_id_to_delete": workout_id_to_delete});
+  except:
+    flash("error in deleting the workout")
 
   
   return redirect('/add_workout')
@@ -128,7 +125,11 @@ def delete_workout():
 def edit_current_workout():
 
   
-  user_email = check_user_is_logged_in()
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   if 'selected_workout' in request.form:
     workout_selected = request.form['selected_workout']
@@ -205,7 +206,11 @@ def add_new_lift():
   if not workout_id:
     return redirect('/edit_current_workout')
 
-  user_email = check_user_is_logged_in()
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   data_to_insert = {
     "workout_id": workout_id, 
@@ -232,7 +237,11 @@ def add_new_cardio():
   if not workout_id:
     return redirect('/edit_current_workout')
 
-  user_email = check_user_is_logged_in()
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   data_to_insert = {
     "workout_id": workout_id, 
@@ -258,7 +267,11 @@ def delete_lift():
   This is used to delete a lift item
   """
 
-  user_email = check_user_is_logged_in() #tbd if this works 
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   try:
     cmd = 'DELETE FROM Lift WHERE lift_id = :lift_id';
@@ -274,7 +287,11 @@ def delete_cardio():
   This is used to delete a cardio item
   """
 
-  user_email = check_user_is_logged_in() #tbd if this works 
+  user_email = session.get('user_email') 
+  calendar_id = session.get('calendar_id') 
+
+  if not user_email or not calendar_id:
+    return redirect('/logout')
 
   try:
     cmd = 'DELETE FROM cardio WHERE cardio_id = :cardio_id';
@@ -287,4 +304,5 @@ def delete_cardio():
 
 @workout_bp.route('/return_add_workout')
 def return_add_workout():
+  session.pop('workout_id', None) 
   return redirect('/add_workout')
