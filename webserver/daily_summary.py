@@ -38,7 +38,7 @@ def add_daily_summary():
 
     cursor = g.conn.execute(text("""                            
                             SELECT * 
-                            JOIN msj2164.Daily_summary
+                            FROM msj2164.Daily_summary
                             where calendar_id = :calendar_id
                             order by day 
                             """), {"calendar_id":calendar_id})
