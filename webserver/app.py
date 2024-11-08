@@ -281,6 +281,9 @@ def landing_page():
     data_plot_3 = [(row['day'], row['calories']) for row in results]
     df = pd.DataFrame(data_plot_3, columns=['day', 'calories'])
 
+    # print("error")
+    # print(df)
+
     fig = px.line(df, x='day', y='calories', title='Daily Calories Consumed Over Time')
     graph3_html = fig.to_html(full_html=False)    
 

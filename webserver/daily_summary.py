@@ -117,6 +117,21 @@ def add_new_daily_summary():
 
     date = datetime.datetime(int(request.form['year']), int(request.form['month']), int(request.form['day']) ).strftime("%Y-%m-%d")
 
+
+    cursor = g.conn.execute(text("""                            
+                            SELECT * 
+                            FROM msj2164.Daily_summary
+                            where calendar_id = :calendar_id
+                            and day = :day
+                            order by day 
+                            """), {"calendar_id":calendar_id, "day":date})
+    
+    results = cursor.fetchall()
+
+    if results: #if the date already exists, then don't do anything
+        flash("duplicate data")
+        return redirect('/add_daily_summary')
+
     data_to_insert = {
         "calendar_id": calendar_id, 
         "day": date, 
@@ -131,4 +146,5 @@ def add_new_daily_summary():
     except:
         flash("error adding data")
 
+    cursor.close()
     return redirect('/add_daily_summary')
