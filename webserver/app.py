@@ -347,21 +347,28 @@ def landing_page():
     
     results = cursor.fetchone()
 
-    data_plot_6 = [(macro, total) for macro, total in results.items()]
-    df = pd.DataFrame(data_plot_6, columns=['macro', 'total'])
+    # data_plot_6 = [(macro, total) for macro, total in results.items()]
+    # df = pd.DataFrame(data_plot_6, columns=['macro', 'total'])
 
-    fig = px.pie(df, values='total', names='macro', title='Macros Split')
-    graph6_html = fig.to_html(full_html=False)
+    # fig = px.pie(df, values='total', names='macro', title='Macros Split')
+    # graph6_html = fig.to_html(full_html=False)
 
     cursor.close()  # Close the session
+    # return render_template('landing_page.html',
+    #                        summaries=summaries,
+    #                        graph1_html=graph1_html,
+    #                        graph2_html=graph2_html,
+    #                        graph3_html=graph3_html,
+    #                        graph4_html=graph4_html,
+    #                        graph5_html=graph5_html,
+    #                        graph6_html=graph6_html)
     return render_template('landing_page.html',
                            summaries=summaries,
                            graph1_html=graph1_html,
                            graph2_html=graph2_html,
                            graph3_html=graph3_html,
                            graph4_html=graph4_html,
-                           graph5_html=graph5_html,
-                           graph6_html=graph6_html)
+                           graph5_html=graph5_html)
 
 #end of meal, start of workout
 
