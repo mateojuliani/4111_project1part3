@@ -48,7 +48,7 @@ def add_daily_summary():
 
     summaries = [
         {
-            'summary_id': row['summary_id'],
+            'summary_id': int(row['summary_id']),
             'calendar_id': row['calendar_id'],
             'day': row['day'],
             'rating': row['rating'],
