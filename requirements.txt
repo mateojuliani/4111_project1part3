@@ -59,6 +59,7 @@ parso==0.8.4
 pexpect==4.6.0
 pickleshare==0.7.5
 platformdirs==4.3.6
+plotly
 prompt-toolkit==3.0.48
 pure-eval==0.2.3
 pyasn1==0.4.2
