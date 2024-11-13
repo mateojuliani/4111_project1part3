@@ -355,7 +355,7 @@ def landing_page():
 
     cursor.close()  # Close the session
     return render_template('landing_page.html',
-                           summaries=summaries,
+                           #summaries=summaries,
                            graph1_html=graph1_html,
                            graph2_html=graph2_html,
                            graph3_html=graph3_html,

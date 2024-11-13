@@ -42,20 +42,6 @@ def create_new_workout():
 
   if not user_email or not calendar_id:
     return redirect('/logout')
-
-  # cal_id = g.conn.execute(text("""
-  #                           WITH user_logged_in as (
-  #                           SELECT * FROM msj2164.User_table 
-  #                           WHERE email = :user_email
-  #                           )
-                          
-  #                           SELECT calendar_id
-  #                           FROM user_logged_in u
-  #                           JOIN msj2164.Calendar c ON c.email = u.email
-  #                           """), {"user_email":user_email})
-  
-  # cal_id_val = cal_id.fetchone()[0]
-
   
   start_year = int(request.form['start_year'])
   start_month = int(request.form['start_month'])
@@ -71,9 +57,18 @@ def create_new_workout():
   
   workout_type = request.form["workout_type"]
 
+  try:
+    start_string = datetime.datetime(start_year, start_month, start_day, start_hour, start_minute).strftime("%Y-%m-%d %H:%M:%S") 
+    end_string = datetime.datetime(end_year, end_month, end_day, end_hour, end_minute).strftime("%Y-%m-%d %H:%M:%S")
+  except:
+    flash("dates are not valid")
+    redirect('/add_workout')
 
-  start_string = datetime.datetime(start_year, start_month, start_day, start_hour, start_minute).strftime("%Y-%m-%d %H:%M:%S") 
-  end_string = datetime.datetime(end_year, end_month, end_day, end_hour, end_minute).strftime("%Y-%m-%d %H:%M:%S") 
+  if datetime.datetime(end_year, end_month, end_day, end_hour, end_minute) <= datetime.datetime(start_year, start_month, start_day, start_hour, start_minute):
+    print("here")
+    flash("Start date needs to be before end date")
+    return redirect('/add_workout')
+
 
   #TODO: Check if the value already exists in the db 
   #TODO: Check if the date inputted is value, 
@@ -82,15 +77,18 @@ def create_new_workout():
   # print(end_string)
   # print(workout_type)
 
-  cmd = 'INSERT INTO workout_event (calendar_id, start_time, end_time, type) VALUES (:calendar_id, :start_time, :end_time, :workout_type)';
-  g.conn.execute(text(cmd), 
-                 {
-                "calendar_id":calendar_id, 
-                 "start_time":start_string, 
-                 "end_time":end_string, 
-                 "workout_type":workout_type
-                 }
-                 );
+  try:
+    cmd = 'INSERT INTO workout_event (calendar_id, start_time, end_time, type) VALUES (:calendar_id, :start_time, :end_time, :workout_type)';
+    g.conn.execute(text(cmd), 
+                  {
+                  "calendar_id":calendar_id, 
+                  "start_time":start_string, 
+                  "end_time":end_string, 
+                  "workout_type":workout_type
+                  }
+                  );
+  except:
+    flash("error adding code")
 
   #cal_id.close()  # Close the session
   return redirect('/add_workout')
@@ -236,8 +234,11 @@ def add_new_lift():
     "sets": request.form['sets'], 
   }
 
-  cmd = 'INSERT INTO Lift(workout_id, type, weight, reps, sets) VALUES (:workout_id, :type, :weight, :reps, :sets)';
-  g.conn.execute(text(cmd), data_to_insert);
+  try:
+    cmd = 'INSERT INTO Lift(workout_id, type, weight, reps, sets) VALUES (:workout_id, :type, :weight, :reps, :sets)';
+    g.conn.execute(text(cmd), data_to_insert);
+  except:
+    flash("error adding data")
 
   return redirect('/edit_current_workout')
 
