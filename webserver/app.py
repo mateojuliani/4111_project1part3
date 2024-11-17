@@ -313,7 +313,7 @@ def landing_page():
                               AVG(ds.sleep_quality) AS average_sleep_quality, AVG(ds.rating) AS average_rating
                             FROM msj2164.Daily_summary ds
                             JOIN msj2164.Calendar c ON ds.calendar_id = c.calendar_id
-                            LEFT JOIN msj2164.Workout_event we ON c.calendar_id = we.calendar_id
+                            LEFT JOIN msj2164.Workout_event we ON c.calendar_id = we.calendar_id and date(we.start_time) = date(ds.day)
                             WHERE c.calendar_id = :calendar_id
                             GROUP BY workout
                             ORDER BY average_sleep_quality DESC
