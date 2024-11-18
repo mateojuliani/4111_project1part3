@@ -18,6 +18,10 @@
         th {
             background-color: #f2f2f2;
         }
+        .table-container {
+            max-height: 300px; /* Set the desired height */
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
 
         .button-container {
             text-align: right; /* Align buttons to the right */
@@ -51,7 +55,31 @@
         <a href="/logout" class="button logout">Logout</a>
     </div>
 
-    <h2>Daily Ratings Over Time</h2>
+    <h2>Calendar of Events</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Event</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in user_cal %}
+                    <tr>
+                        <td>{{ event.date }}</td>
+                        <td>{{ event.time }}</td>
+                        <td>{{ event.event }}</td>
+                        <td>{{ event.description }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Visualizations</h2>
     <div>
         {{ graph1_html|safe }} 
     </div>

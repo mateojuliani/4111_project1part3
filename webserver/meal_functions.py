@@ -255,6 +255,11 @@ def add_new_food_item():
   fats = (request.form['fats'])
   protein = request.form['protein']
 
+  if float(grams) < 0 or float(calories) < 0 or float(carbs) < 0 or float(fats) < 0 or float(protein) < 0:
+    flash("vals cant be negative")
+    return redirect('/edit_current_meal')
+
+
   try:
     cmd = 'INSERT INTO Food (meal_id, name, grams, calories, carbs, fats, protein) VALUES (:meal_id, :name, :grams, :calories, :carbs, :fats, :protein)';
     #TODO: Might need to change these to help with sql injections

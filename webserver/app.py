@@ -226,6 +226,37 @@ def landing_page():
     if not user_email or not calendar_id:
       return redirect(url_for('logout'))
     
+    cursor = g.conn.execute(text("""
+                            WITH meal AS (
+                            SELECT date(start_time) as date, cast(start_time as time)  as time, 'Meal' as event, type as description
+                            FROM msj2164.meal_event
+                            where calendar_id = :calendar_id
+                            ),
+
+                            workouts AS (
+
+                            SELECT date(start_time) as date, cast(start_time as time)  as time, 'Workout' as event, type as description 
+                            FROM msj2164.workout_event
+                            where calendar_id = :calendar_id
+
+                            ),
+
+                            all_events AS (
+
+                            SELECT *
+                            FROM meal
+                            UNION ALL
+                            SELECT *
+                            FROM workouts
+
+                            )
+
+                            SELECT *
+                            FROM all_events
+                            order by date desc, time
+                            """), {"calendar_id":calendar_id})
+    user_cal = cursor.fetchall()
+    
     # Graph 1: track daily ratings and sleep quality over time
     cursor = g.conn.execute(text("""
                             SELECT * 
@@ -236,19 +267,6 @@ def landing_page():
     
     results = cursor.fetchall()
     
-
-    summaries = [
-        {
-            'summary_id': row['summary_id'],
-            'calendar_id': row['calendar_id'],
-            'day': row['day'],
-            'rating': row['rating'],
-            'weight': row['weight'],
-            'sleep_quality': row['sleep_quality'],
-            'notes': row['notes']
-        }
-        for row in results
-    ]
 
     data_plot_1 = [(row['day'], row['rating'], row['sleep_quality']) for row in results]
     df = pd.DataFrame(data_plot_1, columns=['day', 'rating', 'sleep_quality'])
@@ -359,7 +377,7 @@ def landing_page():
 
     cursor.close()  # Close the session
     return render_template('landing_page.html',
-                           #summaries=summaries,
+                           user_cal=user_cal,
                            graph1_html=graph1_html,
                            graph2_html=graph2_html,
                            graph3_html=graph3_html,
