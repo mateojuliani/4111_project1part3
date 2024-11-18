@@ -158,6 +158,62 @@
         <button type="submit">Submit a New Workout</button>
     </form>
 
+    <h3>or search through your workouts!</h3>
+    <h5>Note -1 means data for that column is empty</h5>
+
+
+    <form action="/search_workout" method="post">
+        <select id="item-select" name="workout_column_search">
+            {% for item in search_bar %}
+                <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="workout_search_value" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <form action="/reset_workout_filter" method="post">
+        <button type="submit">Reset Workout Filters</button>
+    </form>
+
+    <h5>Workout Search Results</h5>
+    <table>
+        <thead>
+            <tr>
+                <th>workout_id</th>
+                <th>workout_day</th>
+                <th>workout_description</th>
+                <th>exercise_type</th>
+                <th>exercise_id</th>
+                <th>exercise_description</th>
+                <th>weight</th>
+                <th>reps</th>
+                <th>sets</th>
+                <th>cardio_duration</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lift in workouts %}
+                <tr>
+                    <td>{{ lift.workout_id }}</td>
+                    <td>{{ lift.workout_day }}</td>
+                    <td>{{ lift.workout_description }}</td>
+                    <td>{{ lift.exercise_type }}</td>
+                    <td>{{ lift.exercise_id }}</td>
+                    <td>{{ lift.exercise_description }}</td>
+                    <td>{{ lift.weight }}</td>
+                    <td>{{ lift.reps }}</td>
+                    <td>{{ lift.sets }}</td>
+                    <td>{{ lift.cardio_duration }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+
+
+
 
     
 </body>

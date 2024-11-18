@@ -35,7 +35,59 @@ def add_meal():
   results = cursor.fetchall()
   cursor.close()
 
-  return render_template('meal_addition.html', items=results)
+  food_search_bar = ["meal_id", "start_time", "type", "food_id", "name", "grams", "calories", "carbs", "fats", "protein"]
+
+  try:
+    food_column_search = session["meal_column_search"] 
+    food_search_value  = session["meal_search_value"] 
+  except:
+    food_column_search = 'True'
+    food_search_value = 'True'
+
+  try:
+    cursor_2 = g.conn.execute(
+      text("""
+      WITH base AS (
+      SELECT m.meal_id, start_time, type, food_id, name, grams, calories, carbs, fats, protein
+      FROM  msj2164.meal_event as m
+      LEFT JOIN msj2164.Food f ON f.meal_id = m.meal_id
+      WHERE calendar_id = :cal_id 
+      order by start_time desc
+      )
+      SELECT *
+      FROM base 
+      where {} = :food_search_value
+          """.format(food_column_search)), {"cal_id":calendar_id, "food_search_value":food_search_value} 
+    )
+  except:
+    session.pop('meal_column_search', None) 
+    session.pop('meal_search_value', None)
+    cursor.close()
+    cursor_2.close() 
+    return redirect('/add_meal') #this feels dangerous
+
+
+  results_2 = cursor_2.fetchall()
+  cursor.close()
+  cursor_2.close()
+
+  return render_template('meal_addition.html', items=results, food_search_bar = food_search_bar, meals_table = results_2)
+
+
+@meals_bp.route('/search_meals', methods=['POST'])
+def search_meals():
+
+  session["meal_column_search"] = request.form["meal_column_search"]
+  session["meal_search_value"] = request.form["meal_search_value"]
+  return redirect('/add_meal')
+
+@meals_bp.route('/reset_meal_filter', methods=['POST'])
+def reset_meal_filter():
+
+  session.pop('meal_column_search', None) 
+  session.pop('meal_search_value', None) 
+  return redirect('/add_meal')
+
 
 #create a new meal 
 @meals_bp.route('/create_new_meal', methods=['POST'])
@@ -96,10 +148,11 @@ def delete_meal():
   if not user_email or not calendar_id:
     return redirect('/logout')
 
-  meal_id_to_delete = request.form['selected_meal_to_delete'].split("|")[0]
+  
 
   #print(meal_id_to_delete)
   try:
+    meal_id_to_delete = request.form['selected_meal_to_delete'].split("|")[0]
     cmd = 'DELETE FROM meal_event WHERE meal_id = :meal_id_to_delete';
     g.conn.execute(text(cmd), {"meal_id_to_delete": meal_id_to_delete});
   except:

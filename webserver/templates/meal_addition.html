@@ -3,6 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Add Meal</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
 
@@ -91,6 +105,56 @@
         </select>
         <button type="submit">Delete</button>
     </form>
+
+    <h3>or search through your meals!</h3>
+
+    <form action="/search_meals" method="post">
+        <select id="item-select" name="meal_column_search">
+            {% for item in food_search_bar %}
+                <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="meal_search_value" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <form action="/reset_meal_filter" method="post">
+        <button type="submit">Reset Meal Filters</button>
+    </form>
+
+    <h5>Food Search Results</h5>
+    <table>
+        <thead>
+            <tr>
+                <th>meal_id</th>
+                <th>start_time</th>
+                <th>type</th>
+                <th>food_id</th>
+                <th>name</th>
+                <th>grams</th>
+                <th>calories</th>
+                <th>carbs</th>
+                <th>fats</th>
+                <th>protein</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lift in meals_table %}
+                <tr>
+                    <td>{{ lift.meal_id }}</td>
+                    <td>{{ lift.start_time }}</td>
+                    <td>{{ lift.type }}</td>
+                    <td>{{ lift.food_id }}</td>
+                    <td>{{ lift.name }}</td>
+                    <td>{{ lift.grams }}</td>
+                    <td>{{ lift.calories }}</td>
+                    <td>{{ lift.carbs }}</td>
+                    <td>{{ lift.fats }}</td>
+                    <td>{{ lift.protein }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
     
 </body>

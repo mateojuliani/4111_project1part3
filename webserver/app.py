@@ -179,6 +179,10 @@ def logout():
     session.pop('calendar_id', None)
     session.pop('meal_id', None) 
     session.pop('workout_id', None) 
+    session.pop('workout_column_search', None) 
+    session.pop('workout_search_value', None) 
+    session.pop('meal_column_search', None) 
+    session.pop('meal_search_value', None)
     return render_template("login.html")
 
 @app.route('/add_new_user_page', methods=['POST'])

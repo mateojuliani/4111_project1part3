@@ -77,10 +77,11 @@ def delete_daily_summary():
     if not user_email or not calendar_id:
         return redirect('/logout') 
 
-    ds_id_to_delete = request.form['selected_ds_delete']
+    
 
     #print(meal_id_to_delete)
     try:
+        ds_id_to_delete = request.form['selected_ds_delete']
         cmd = 'DELETE FROM daily_summary WHERE summary_id = :ds_id_to_delete';
         g.conn.execute(text(cmd), {"ds_id_to_delete": ds_id_to_delete});
     except:

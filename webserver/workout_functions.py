@@ -20,7 +20,7 @@ def add_workout():
   if not user_email or not calendar_id:
     return redirect('/logout')
 
-  #Get all the user meal events 
+  #Get all the user workout events 
   cursor = g.conn.execute( text("""                          
                             SELECT concat(workout_id, ' | ', start_time, ' | ', end_time, ' | ', type) as name
                             FROM msj2164.workout_event
@@ -30,7 +30,104 @@ def add_workout():
     
   results = cursor.fetchall()
 
-  return render_template('workout_addition.html', items=results)
+
+  #yikes LOL
+  try:
+    workout_column_search = session["workout_column_search"] 
+    workout_search_value  = session["workout_search_value"] 
+  except:
+    workout_column_search = 'True'
+    workout_search_value = 'True'
+  
+  try: 
+    cursor_2 = g.conn.execute(
+      text("""
+      WITH lifts as (
+      SELECT we.workout_id, date(we.start_time) as workout_day, we.type as workout_description, 'Lift' as exercise_type, L.lift_id as exercise_id, L.type as exercise_description, L.weight, L.reps, L.sets, -1 as cardio_duration
+      FROM  msj2164.Workout_event as we
+      LEFT JOIN msj2164.Lift L ON L.workout_id = we.workout_id
+      WHERE calendar_id = :cal_id
+      and lift_id is not NULL
+      ),
+
+      cardios as (
+
+      SELECT we.workout_id, date(we.start_time) as workout_day, we.type as workout_description, 'Cardio' as exercise_type, C.cardio_id as exercise_id, C.type as exercise_description , -1 as weight, -1 as reps, -1 as sets, C.duration as cardio_duration
+      FROM  msj2164.Workout_event as we
+      LEFT JOIN msj2164.cardio C ON C.workout_id = we.workout_id
+      WHERE calendar_id = :cal_id
+      and cardio_id is not NULL
+
+      ),
+
+      uncleaned_union as (
+
+      SELECT *
+      FROM lifts as l
+      UNION ALL
+      SELECT *
+      FROM cardios as c
+
+      )
+
+      SELECT 
+      workout_id,
+      workout_day,
+      workout_description	
+      ,exercise_type	
+      ,exercise_id	
+      ,exercise_description	
+      , weight
+      , reps
+      , sets
+      , cardio_duration
+      FROM uncleaned_union
+      where {} = :workout_search_value
+      order by workout_day desc, workout_id desc, exercise_type""".format(workout_column_search)), {"cal_id":calendar_id, "workout_search_value":workout_search_value} 
+    )
+  except:
+    #there was some bad search input. remove the input and reset 
+    session.pop('workout_column_search', None) 
+    session.pop('workout_search_value', None)
+    cursor.close()
+    cursor_2.close() 
+    return redirect('/add_workout')
+
+  
+  search_bar = [
+    "workout_id",
+    "workout_day",
+    "workout_description",
+    "exercise_type",
+    "exercise_id",
+    "exercise_description",
+    "weight",
+    "reps",
+    "sets",
+    "cardio_duration"
+  ]
+
+  results_2 = cursor_2.fetchall()
+  cursor.close()
+  cursor_2.close()
+
+  return render_template('workout_addition.html', items=results, workouts = results_2, search_bar = search_bar)
+
+@workout_bp.route('/search_workout', methods=['POST'])
+def search_workout():
+
+  session["workout_column_search"] = request.form["workout_column_search"]
+  session["workout_search_value"] = request.form["workout_search_value"]
+  return redirect('/add_workout')
+
+@workout_bp.route('/reset_workout_filter', methods=['POST'])
+def reset_workout_filter():
+
+  session.pop('workout_column_search', None) 
+  session.pop('workout_search_value', None) 
+  return redirect('/add_workout')
+
+
 
 # Adding a new workout
 @workout_bp.route('/create_new_workout', methods=['POST'])
