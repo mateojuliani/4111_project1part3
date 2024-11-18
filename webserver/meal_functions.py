@@ -63,7 +63,7 @@ def add_meal():
     session.pop('meal_column_search', None) 
     session.pop('meal_search_value', None)
     cursor.close()
-    cursor_2.close() 
+    #cursor_2.close() 
     return redirect('/add_meal') #this feels dangerous
 
 

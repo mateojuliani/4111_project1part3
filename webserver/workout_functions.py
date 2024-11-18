@@ -90,7 +90,7 @@ def add_workout():
     session.pop('workout_column_search', None) 
     session.pop('workout_search_value', None)
     cursor.close()
-    cursor_2.close() 
+    #cursor_2.close() 
     return redirect('/add_workout')
 
   
