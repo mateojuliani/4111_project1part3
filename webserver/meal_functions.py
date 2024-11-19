@@ -56,7 +56,14 @@ def add_meal():
 
   custom_food_string = """
       WITH base AS (
-      SELECT m.meal_id, start_time, type, food_id, name, grams, calories, carbs, fats, protein
+      SELECT m.meal_id, start_time, type, 
+      coalesce(food_id, -1) as food_id, 
+      coalesce(name, '-1') as name, 
+      coalesce(grams, -1) as grams, 
+      coalesce(calories, -1) as calories,  
+      coalesce(carbs, -1) as carbs, 
+      coalesce(fats, -1) as fats, 
+      coalesce(protein, -1) as protein
       FROM  msj2164.meal_event as m
       LEFT JOIN msj2164.Food f ON f.meal_id = m.meal_id
       WHERE calendar_id = :cal_id 
