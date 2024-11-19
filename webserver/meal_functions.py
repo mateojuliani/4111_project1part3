@@ -53,9 +53,8 @@ def add_meal():
     food_column_search = 'True'
     food_search_value = 'True'
 
-  try:
-    cursor_2 = g.conn.execute(
-      text("""
+
+  custom_food_string = """
       WITH base AS (
       SELECT m.meal_id, start_time, type, food_id, name, grams, calories, carbs, fats, protein
       FROM  msj2164.meal_event as m
@@ -66,7 +65,11 @@ def add_meal():
       SELECT *
       FROM base 
       where {} = :food_search_value
-          """.format(food_column_search)), {"cal_id":calendar_id, "food_search_value":food_search_value} 
+          """.format(food_column_search)
+  
+  try:
+    cursor_2 = g.conn.execute(
+      text(custom_food_string), {"cal_id":calendar_id, "food_search_value":food_search_value} 
     )
   except:
     session.pop('meal_column_search', None) 
