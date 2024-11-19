@@ -35,11 +35,20 @@ def add_meal():
   results = cursor.fetchall()
   cursor.close()
 
+  #this will work as our whitelist 
   food_search_bar = ["meal_id", "start_time", "type", "food_id", "name", "grams", "calories", "carbs", "fats", "protein"]
 
   try:
     food_column_search = session["meal_column_search"] 
     food_search_value  = session["meal_search_value"] 
+
+    #the food column is not in the white list, so get rid of 
+    if food_column_search not in food_search_bar: 
+      food_column_search = 'True'
+      food_search_value = 'True'
+      session.pop('meal_column_search', None) 
+      session.pop('meal_search_value', None)
+
   except:
     food_column_search = 'True'
     food_search_value = 'True'

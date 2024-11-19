@@ -30,11 +30,33 @@ def add_workout():
     
   results = cursor.fetchall()
 
+  #this will be the white list 
+  search_bar = [
+    "workout_id",
+    "workout_day",
+    "workout_description",
+    "exercise_type",
+    "exercise_id",
+    "exercise_description",
+    "weight",
+    "reps",
+    "sets",
+    "cardio_duration"
+  ]
 
-  #yikes LOL
+  #yikes LOL 
   try:
     workout_column_search = session["workout_column_search"] 
-    workout_search_value  = session["workout_search_value"] 
+    workout_search_value  = session["workout_search_value"]
+
+    #forgive me for this code
+    #basically somehow we got a non whitelisted value, so ignore it 
+    if workout_column_search not in search_bar: 
+      workout_column_search = 'True'
+      workout_search_value = 'True'
+      session.pop('workout_column_search', None) 
+      session.pop('workout_search_value', None)
+
   except:
     workout_column_search = 'True'
     workout_search_value = 'True'
@@ -94,18 +116,7 @@ def add_workout():
     return redirect('/add_workout')
 
   
-  search_bar = [
-    "workout_id",
-    "workout_day",
-    "workout_description",
-    "exercise_type",
-    "exercise_id",
-    "exercise_description",
-    "weight",
-    "reps",
-    "sets",
-    "cardio_duration"
-  ]
+  
 
   results_2 = cursor_2.fetchall()
   cursor.close()
